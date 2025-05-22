@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Math Quiz for Kids</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: #4CAF50; /* Green header */
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .quiz-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 20px auto;
+            flex-grow: 1;
+        }
+        .question {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .options label {
+            display: block;
+            margin-bottom: 8px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .options label:hover {
+            background-color: #e9e9e9;
+        }
+        .options input[type="radio"] {
+            margin-right: 10px;
+        }
+        .correct {
+            background-color: #d4edda !important; /* Light green */
+            border-color: #28a745 !important; /* Green */
+        }
+        .incorrect {
+            background-color: #f8d7da !important; /* Light red */
+            border-color: #dc3545 !important; /* Red */
+        }
+        .submit-btn {
+            display: block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 30px;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+        }
+        .results span {
+            margin-right: 20px;
+        }
+        .emoji-group {
+            font-size: 1.5em;
+            margin-top: 5px;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: auto;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        Math Fun for <span id="kidNameHeader"></span>!
+        <span id="difficultyDisplay" style="font-size: 0.8em; margin-left: 10px;"></span>
+    </header>
+
+    <div class="quiz-container">
+        <h1>Let's Do Some Math!</h1>
+        <form id="mathQuiz">
+            </form>
+
+        <button type="submit" class="submit-btn" id="submitQuiz">Check My Answers</button>
+
+        <div class="results" id="results">
+            <span id="correctCount">Correct: 0</span>
+            <span id="wrongCount">Wrong: 0</span>
+        </div>
+    </div>
+
+    <footer>
+        Keep Learning, <span id="kidNameFooter"></span>!
+    </footer>
+
+    <script>
+        // --- Get data from URL parameters ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const kidName = urlParams.get('name') || "Little Learner"; // Default if name not provided
+        const difficulty = urlParams.get('difficulty') || "easy"; // Default to easy
+
+        // --- Configuration ---
+        const totalQuestions = 10; // Change this to 50 for 50 questions
+        const quizRanges = {
+            easy: {
+                additionMax: 5, // e.g., 1+1 to 5+5
+                countingMax: 7, // e.g., count up to 7 items
+                sequenceMax: 9, // e.g., after 9
+                comparisonMax: 10 // e.g., comparing numbers up to 10
+            },
+            medium: {
+                additionMax: 10, // e.g., 1+1 to 10+10
+                countingMax: 15,
+                sequenceMax: 20,
+                comparisonMax: 25
+            },
+            hard: {
+                additionMax: 20, // e.g., 1+1 to 20+20
+                countingMax: 25,
+                sequenceMax: 50,
+                comparisonMax: 100
+            }
+        };
+
+        const currentRanges = quizRanges[difficulty]; // Set ranges based on selected difficulty
+
+        // --- DOM Elements ---
+        const quizForm = document.getElementById('mathQuiz');
+        const submitBtn = document.getElementById('submitQuiz');
+        const correctCountSpan = document.getElementById('correctCount');
+        const wrongCountSpan = document.getElementById('wrongCount');
+        const kidNameHeader = document.getElementById('kidNameHeader');
+        const kidNameFooter = document.getElementById('kidNameFooter');
+        const difficultyDisplay = document.getElementById('difficultyDisplay');
+
+        let generatedAnswers = {};
+
+        // Set the kid's name and difficulty in the header and footer
+        kidNameHeader.textContent = kidName;
+        kidNameFooter.textContent = kidName;
+        difficultyDisplay.textContent = `(${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Mode)`; // Capitalize difficulty
+
+        // --- Helper Functions ---
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Question Generation Functions (modified for difficulty) ---
+        function generateAdditionQuestion(questionNum) {
+            const num1 = getRandomInt(1, currentRanges.additionMax);
+            const num2 = getRandomInt(1, currentRanges.additionMax);
+            const correctAnswer = num1 + num2;
+
+            let options = new Set();
+            options.add(correctAnswer);
+
+            while (options.size < 3) {
+                let wrongAnswer = getRandomInt(Math.max(0, correctAnswer - 2), correctAnswer + 2);
+                if (wrongAnswer !== correctAnswer) {
+                    options.add(wrongAnswer);
+                }
+            }
+            const shuffledOptions = shuffleArray(Array.from(options));
+            const questionText = `What is ${num1} + ${num2}?`;
+
+            return {
+                id: `q${questionNum}`,
+                text: questionText,
+                options: shuffledOptions,
+                correct: correctAnswer
+            };
+        }
+
+        function generateCountingQuestion(questionNum) {
+            const count = getRandomInt(3, currentRanges.countingMax);
+            const emojis = ['🍎', '🍌', '🥕', '🍓', '🍇', '🍊', '🍍', '🍉', '🥭', '🚗', '🚂', '⚽', '🎈', '🌟']; // More emojis
+            const chosenEmoji = emojis[getRandomInt(0, emojis.length - 1)];
+            const emojiString = chosenEmoji.repeat(count);
+
+            let options = new Set();
+            options.add(count);
+
+            while (options.size < 3) {
+                let wrongAnswer = getRandomInt(Math.max(1, count - 2), count + 2);
+                if (wrongAnswer !== count && wrongAnswer >=1) {
+                    options.add(wrongAnswer);
+                }
+            }
+
+            const shuffledOptions = shuffleArray(Array.from(options));
+            const questionText = `Count the ${chosenEmoji}s: <span class="emoji-group">${emojiString}</span>`;
+
+            return {
+                id: `q${questionNum}`,
+                text: questionText,
+                options: shuffledOptions,
+                correct: count
+            };
+        }
+
+        function generateSequenceQuestion(questionNum) {
+            const num = getRandomInt(2, currentRanges.sequenceMax);
+            const type = Math.random() < 0.5 ? 'after' : 'before';
+            let correctAnswer;
+            let questionText;
+
+            if (type === 'after') {
+                correctAnswer = num + 1;
+                questionText = `Which number comes after ${num}?`;
+            } else {
+                correctAnswer = num - 1;
+                questionText = `Which number comes before ${num}?`;
+            }
+
+            let options = new Set();
+            options.add(correctAnswer);
+
+            while (options.size < 3) {
+                let wrongAnswer = getRandomInt(Math.max(0, correctAnswer - 2), correctAnswer + 2);
+                if (wrongAnswer !== correctAnswer) {
+                    options.add(wrongAnswer);
+                }
+            }
+
+            const shuffledOptions = shuffleArray(Array.from(options));
+
+            return {
+                id: `q${questionNum}`,
+                text: questionText,
+                options: shuffledOptions,
+                correct: correctAnswer
+            };
+        }
+
+        function generateComparisonQuestion(questionNum) {
+            const num1 = getRandomInt(1, currentRanges.comparisonMax);
+            let num2 = getRandomInt(1, currentRanges.comparisonMax);
+            while (num1 === num2) {
+                num2 = getRandomInt(1, currentRanges.comparisonMax);
+            }
+
+            const comparisonType = Math.random() < 0.5 ? 'bigger' : 'smaller';
+            let correctAnswer;
+            let questionText;
+
+            if (comparisonType === 'bigger') {
+                correctAnswer = Math.max(num1, num2);
+                questionText = `Which number is bigger: ${num1} or ${num2}?`;
+            } else {
+                correctAnswer = Math.min(num1, num2);
+                questionText = `Which number is smaller: ${num1} or ${num2}?`;
+            }
+
+            let options = new Set();
+            options.add(correctAnswer);
+
+            while (options.size < 3) {
+                let wrongAnswer = getRandomInt(Math.max(1, correctAnswer - 2), correctAnswer + 2);
+                if (wrongAnswer !== correctAnswer && wrongAnswer >=1) {
+                    options.add(wrongAnswer);
+                }
+            }
+
+            const shuffledOptions = shuffleArray(Array.from(options));
+
+            return {
+                id: `q${questionNum}`,
+                text: questionText,
+                options: shuffledOptions,
+                correct: correctAnswer
+            };
+        }
+
+        // --- Main Question Rendering Function ---
+        function renderQuestions() {
+            quizForm.innerHTML = '';
+            generatedAnswers = {};
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                let questionData;
+                const questionType = getRandomInt(1, 4);
+
+                if (questionType === 1) {
+                    questionData = generateAdditionQuestion(i);
+                } else if (questionType === 2) {
+                    questionData = generateCountingQuestion(i);
+                } else if (questionType === 3) {
+                    questionData = generateSequenceQuestion(i);
+                } else {
+                    questionData = generateComparisonQuestion(i);
+                }
+
+                const questionBlock = document.createElement('div');
+                questionBlock.classList.add('question-block');
+
+                const questionHTML = `
+                    <div class="question">${i}. ${questionData.text}</div>
+                    <div class="options">
+                        ${questionData.options.map((option, index) => `
+                            <label>
+                                <input type="radio" name="${questionData.id}" value="${option}"> ${option}
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                questionBlock.innerHTML = questionHTML;
+                quizForm.appendChild(questionBlock);
+
+                generatedAnswers[questionData.id] = questionData.correct.toString();
+            }
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', renderQuestions);
+
+        submitBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+
+            let correctAnswers = 0;
+            let wrongAnswers = 0;
+
+            const questionBlocks = document.querySelectorAll('.question-block');
+
+            questionBlocks.forEach(block => {
+                const questionName = block.querySelector('input[type="radio"]').name;
+                const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                const optionsLabels = block.querySelectorAll('.options label');
+
+                optionsLabels.forEach(label => {
+                    label.classList.remove('correct', 'incorrect');
+                });
+
+                const correctAnswerValue = generatedAnswers[questionName];
+
+                if (selectedOption) {
+                    if (selectedOption.value === correctAnswerValue) {
+                        correctAnswers++;
+                        selectedOption.parentElement.classList.add('correct');
+                    } else {
+                        wrongAnswers++;
+                        selectedOption.parentElement.classList.add('incorrect');
+                        optionsLabels.forEach(label => {
+                            if (label.querySelector('input').value === correctAnswerValue) {
+                                label.classList.add('correct');
+                            }
+                        });
+                    }
+                } else {
+                    wrongAnswers++;
+                    optionsLabels.forEach(label => {
+                        if (label.querySelector('input').value === correctAnswerValue) {
+                            label.classList.add('correct');
+                        }
+                    });
+                }
+            });
+
+            correctCountSpan.textContent = `Correct: ${correctAnswers}`;
+            wrongCountSpan.textContent = `Wrong: ${wrongAnswers}`;
+        });
+    </script>
+
+</body>
+</html>
