@@ -21,7 +21,29 @@
             font-size: 1.8em;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex; /* Use flexbox for header content */
+            justify-content: space-between; /* Space out items */
+            align-items: center; /* Vertically align items */
         }
+        header .title-group {
+            flex-grow: 1; /* Allow title to take most space */
+            text-align: center;
+        }
+        header .about-btn-header {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 10px; /* Space from title */
+        }
+        header .about-btn-header:hover {
+            background-color: #0056b3;
+        }
+
         .quiz-container {
             background-color: #fff;
             padding: 20px;
@@ -100,13 +122,69 @@
             font-size: 0.85em;
             opacity: 0.8;
         }
+
+        /* Modal Styles - Identical to index.html for consistency */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            animation-name: animatetop;
+            animation-duration: 0.4s;
+        }
+        @keyframes animatetop {
+            from {top: -300px; opacity: 0}
+            to {top: 0; opacity: 1}
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-content h2 {
+            color: #007bff;
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .modal-content p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        Math Fun for <span id="kidNameHeader"></span>!
-        <span id="difficultyDisplay" style="font-size: 0.8em; margin-left: 10px;"></span>
+        <div class="title-group">
+            Math Fun for <span id="kidNameHeader"></span>!
+            <span id="difficultyDisplay" style="font-size: 0.8em; margin-left: 10px;"></span>
+        </div>
+        <button class="about-btn-header" onclick="showAboutModal()">About</button>
     </header>
 
     <div class="quiz-container">
@@ -127,6 +205,30 @@
         <div class="developer-credit">Developed by Ravikiran Mallappa</div>
     </footer>
 
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="hideAboutModal()">&times;</span>
+            <h2>About This Math Quiz</h2>
+            <p>Welcome to the Fun Math Quiz, designed to help kids aged 5+ practice their basic math skills in an engaging way!</p>
+            <p><strong>How to Use:</strong></p>
+            <ul>
+                <li>Enter your name on the welcome page.</li>
+                <li>Choose a difficulty level:
+                    <ul>
+                        <li><strong>Easy:</strong> Simple counting and addition/subtraction with smaller numbers.</li>
+                        <li><strong>Medium:</strong> Slightly larger numbers and more complex problems.</li>
+                        <li><strong>Hard:</strong> Challenges with bigger numbers and quicker thinking.</li>
+                    </ul>
+                </li>
+                <li>Click "Start Quiz!" to begin your challenge.</li>
+                <li>For each question, choose the correct answer.</li>
+                <li>Click "Check My Answers" at the end to see how many you got right and wrong.</li>
+                <li>Refresh the quiz page to get a new set of random questions!</li>
+            </ul>
+            <p>This application was developed by <strong>Ravikiran Mallappa</strong> to make learning math fun and interactive for young learners.</p>
+        </div>
+    </div>
+
     <script>
         // --- Get data from URL parameters ---
         const urlParams = new URLSearchParams(window.location.search);
@@ -137,26 +239,26 @@
         const totalQuestions = 10; // Change this to 50 for 50 questions
         const quizRanges = {
             easy: {
-                additionMax: 5, // e.g., 1+1 to 5+5
-                countingMax: 7, // e.g., count up to 7 items
-                sequenceMax: 9, // e.g., after 9
-                comparisonMax: 10 // e.g., comparing numbers up to 10
+                additionMax: 5,
+                countingMax: 7,
+                sequenceMax: 9,
+                comparisonMax: 10
             },
             medium: {
-                additionMax: 10, // e.g., 1+1 to 10+10
+                additionMax: 10,
                 countingMax: 15,
                 sequenceMax: 20,
                 comparisonMax: 25
             },
             hard: {
-                additionMax: 20, // e.g., 1+1 to 20+20
+                additionMax: 20,
                 countingMax: 25,
                 sequenceMax: 50,
                 comparisonMax: 100
             }
         };
 
-        const currentRanges = quizRanges[difficulty]; // Set ranges based on selected difficulty
+        const currentRanges = quizRanges[difficulty];
 
         // --- DOM Elements ---
         const quizForm = document.getElementById('mathQuiz');
@@ -172,7 +274,7 @@
         // Set the kid's name and difficulty in the header and footer
         kidNameHeader.textContent = kidName;
         kidNameFooter.textContent = kidName;
-        difficultyDisplay.textContent = `(${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Mode)`; // Capitalize difficulty
+        difficultyDisplay.textContent = `(${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Mode)`;
 
         // --- Helper Functions ---
         function getRandomInt(min, max) {
@@ -215,7 +317,7 @@
 
         function generateCountingQuestion(questionNum) {
             const count = getRandomInt(3, currentRanges.countingMax);
-            const emojis = ['🍎', '🍌', '🥕', '🍓', '🍇', '🍊', '🍍', '🍉', '🥭', '🚗', '🚂', '⚽', '🎈', '🌟']; // More emojis
+            const emojis = ['🍎', '🍌', '🥕', '🍓', '🍇', '🍊', '🍍', '🍉', '🥭', '🚗', '🚂', '⚽', '🎈', '🌟'];
             const chosenEmoji = emojis[getRandomInt(0, emojis.length - 1)];
             const emojiString = chosenEmoji.repeat(count);
 
@@ -400,6 +502,23 @@
             correctCountSpan.textContent = `Correct: ${correctAnswers}`;
             wrongCountSpan.textContent = `Wrong: ${wrongAnswers}`;
         });
+
+        // Modal functions - Identical to index.html
+        const aboutModal = document.getElementById('aboutModal');
+
+        function showAboutModal() {
+            aboutModal.style.display = "flex";
+        }
+
+        function hideAboutModal() {
+            aboutModal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == aboutModal) {
+                aboutModal.style.display = "none";
+            }
+        }
     </script>
 
 </body>
