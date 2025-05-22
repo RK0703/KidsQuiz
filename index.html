@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Math Fun!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #e0f7fa; /* Light blue background */
+            color: #333;
+        }
+        .landing-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #007bff; /* Blue heading */
+            margin-bottom: 25px;
+            font-size: 2.5em;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .input-group input[type="text"] {
+            width: calc(100% - 22px); /* Account for padding and border */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1.1em;
+        }
+        .difficulty-group {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .difficulty-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .difficulty-options label {
+            display: inline-block;
+            margin-right: 20px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .difficulty-options input[type="radio"] {
+            margin-right: 5px;
+        }
+        .start-btn {
+            padding: 15px 30px;
+            background-color: #28a745; /* Green button */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .start-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="landing-container">
+        <h1>Welcome to Math Fun!</h1>
+        <p>Let's get ready to play and learn math!</p>
+
+        <div class="input-group">
+            <label for="kidName">What's your name, little math whiz?</label>
+            <input type="text" id="kidName" placeholder="Enter kid's name here">
+        </div>
+
+        <div class="difficulty-group">
+            <label>Choose your math challenge:</label>
+            <div class="difficulty-options">
+                <label>
+                    <input type="radio" name="difficulty" value="easy" checked> Easy
+                </label>
+                <label>
+                    <input type="radio" name="difficulty" value="medium"> Medium
+                </label>
+                <label>
+                    <input type="radio" name="difficulty" value="hard"> Hard
+                </label>
+            </div>
+        </div>
+
+        <button class="start-btn" onclick="startQuiz()">Start Quiz!</button>
+    </div>
+
+    <script>
+        function startQuiz() {
+            const kidName = document.getElementById('kidName').value.trim();
+            const selectedDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
+
+            if (kidName === "") {
+                alert("Please enter the kid's name to start the quiz!");
+                return;
+            }
+
+            // Store data in localStorage or pass as URL parameters
+            // For simplicity and ease of use in this context, we'll use URL parameters.
+            window.location.href = `quiz.html?name=${encodeURIComponent(kidName)}&difficulty=${encodeURIComponent(selectedDifficulty)}`;
+        }
+    </script>
+
+</body>
+</html>
